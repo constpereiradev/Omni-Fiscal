@@ -14,7 +14,8 @@ O **OmniFiscal** é um middleware desenvolvido para automatizar o fluxo fiscal e
             `php artisan migrate` 
             
         - Iniciar o Worker da Fila
-        `php artisan queue:work`
+            
+            `php artisan queue:work`
         ****
         
         Um ambiente de desenvolvimento universal. É excelente para criar e gerenciar aplicações web modernas. Seu foco é o desempenho, sendo projetado com base em estabilidade, simplicidade, flexibilidade e liberdade.
