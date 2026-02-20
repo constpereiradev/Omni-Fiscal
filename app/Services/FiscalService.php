@@ -14,8 +14,9 @@ class FiscalService
      */
     public function emit(Order $order)
     {
+        //TODO: Add docs
         try {
-            Log::info(message: "Iniciando emissão fiscal do pedido: {$order->external_id}");
+            Log::info(message: "Webmania: Iniciando emissão fiscal do pedido {$order->external_id}");
 
             $payload = is_array($order->raw_data) ? (object) $order->raw_data : json_decode($order->raw_data);
 
@@ -35,7 +36,39 @@ class FiscalService
         } catch (\Exception $e) {
             $this->handleError($order, $e->getMessage());
         }
+    }
 
+    private function prepareWebManiaPayload(Order $order): array
+    {
+        return [
+            'ambiente' => '{{ambiente}}',
+            'rps' => [
+                [
+                    'servico' => [
+                        'valor_servicos' => $order->total,
+                        'discriminacao' => 'DESCRIÇÃO DO SERVIÇO PRESTADO',
+                        'impostos' => [
+                            'ir' => 1.5,
+                            'iss' => 5
+                        ],
+                        'codigo_servico' => '0000',
+                        'iss_retido' => 2,
+                        'codigo_cnae' => '000000',
+                        'informacoes_complementares' => 'REF. MES ANO'
+                    ],
+                    'tomador' => [
+                        'razao_social' => 'RAZAO TOMADOR',
+                        'cnpj' => '00000000000000',
+                        'cep' => '00000000',
+                        'endereco' => 'Rodovia',
+                        'numero' => 'NR',
+                        'bairro' => 'BAIRRO',
+                        'cidade' => 'CIDADE',
+                        'uf' => 'UF'
+                    ]
+                ]
+            ]
+        ];
     }
 
     private function handleSuccess(Order $order)
