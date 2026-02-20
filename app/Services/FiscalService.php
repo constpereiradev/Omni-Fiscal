@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use Illuminate\Support\Facades\Log;
+use App\Utils\Utils;
 
 class FiscalService
 {
@@ -18,21 +19,12 @@ class FiscalService
         try {
             Log::info(message: "Webmania: Iniciando emissão fiscal do pedido {$order->external_id}");
 
-            $payload = is_array($order->raw_data) ? (object) $order->raw_data : json_decode($order->raw_data);
+            $payload = $this->prepareWebManiaPayload($order);
 
-            if (!isset($payload->line_items) || empty($payload->line_items)) {
-                throw new \Exception("Pedido sem itens para emissão.");
-            }
+            Log::info("Payload gerado com sucesso para o cliente: " . $payload['rps'][0]['tomador']['razao_social']);
 
-            $items = $payload->line_items;
-
-            foreach ($items as $item) {
-                $ncm = "6109.10.00"; // Esse valor deve ser buscado no banco pelo SKU
-                Log::info("Processando Item: {$item->name} | NCM: {$ncm}");
-            }
-
-            //Chamada para api externa (Ex: FocusNFe) e validação de retorno.
             $this->handleSuccess($order);
+
         } catch (\Exception $e) {
             $this->handleError($order, $e->getMessage());
         }
@@ -40,31 +32,33 @@ class FiscalService
 
     private function prepareWebManiaPayload(Order $order): array
     {
+        $config = config('fiscal');
+
         return [
-            'ambiente' => '{{ambiente}}',
+            'ambiente' => 2, // 1 = Produção, 2 = Homologação
             'rps' => [
                 [
                     'servico' => [
-                        'valor_servicos' => $order->total,
-                        'discriminacao' => 'DESCRIÇÃO DO SERVIÇO PRESTADO',
+                        'valor_servicos' => (float) $order->total,
+                        'discriminacao'  => "Prestação de serviço ref. ao pedido #{$order->external_id}",
                         'impostos' => [
-                            'ir' => 1.5,
-                            'iss' => 5
+                            'ir'  => $config['ir'],
+                            'iss' => $config['iss']
                         ],
-                        'codigo_servico' => '0000',
-                        'iss_retido' => 2,
-                        'codigo_cnae' => '000000',
-                        'informacoes_complementares' => 'REF. MES ANO'
+                        'codigo_servico' => $config['codigo_servico'],
+                        'iss_retido'     => $config['iss_retido'],
+                        'codigo_cnae'    => $config['cnae'],
+                        'informacoes_complementares' => 'Pagamento via Gateway Online'
                     ],
                     'tomador' => [
-                        'razao_social' => 'RAZAO TOMADOR',
-                        'cnpj' => '00000000000000',
-                        'cep' => '00000000',
-                        'endereco' => 'Rodovia',
-                        'numero' => 'NR',
-                        'bairro' => 'BAIRRO',
-                        'cidade' => 'CIDADE',
-                        'uf' => 'UF'
+                        'razao_social' => $order->billing_name,
+                        'cnpj'         => Utils::onlyNumbers($order->document ?? '00000000000'),
+                        'cep'          => Utils::onlyNumbers($order->raw_data['billing']['postcode'] ?? '00000000'),
+                        'endereco'     => $order->billing_address,
+                        'numero'       => $order->address_number ?? 'S/N',
+                        'bairro'       => $order->address_neighbor ?? 'Centro',
+                        'cidade'       => $order->raw_data['billing']['city'] ?? 'Não informada',
+                        'uf'           => $order->raw_data['billing']['state'] ?? 'BA'
                     ]
                 ]
             ]
