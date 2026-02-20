@@ -11,6 +11,7 @@ class OrderStrategyFactory
     public static function make(Request $request): OrderIntegrationStrategy
     {
         $userAgent = $request->userAgent();
+        return new WooCommerceStrategy();
 
         if (str_contains($userAgent, 'WooCommerce')) {
             return new WooCommerceStrategy();

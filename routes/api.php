@@ -10,5 +10,6 @@ Route::get('/user', function (Request $request) {
 
 
 Route::prefix('v1')->group(function () {
-    Route::match(['get', 'post'], '/orders', [OrderController::class, 'store']);
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::post('/orders', [OrderController::class, 'store']);
 });

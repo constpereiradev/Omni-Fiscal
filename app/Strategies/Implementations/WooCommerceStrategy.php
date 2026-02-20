@@ -9,6 +9,9 @@ class WooCommerceStrategy implements OrderIntegrationStrategy
 {
     public function transform(array $data): array
     {
+        $billing = $data['billing'] ?? [];
+        $shipping = $data['shipping'] ?? [];
+
         return [
             'external_id' => $data['id'] ?? null,
             'origin' => 'woocomerce',
@@ -16,10 +19,12 @@ class WooCommerceStrategy implements OrderIntegrationStrategy
             'raw_data' => json_encode($data) ?? null,
             'order_key' => $data['order_key'] ?? null,
             'currency' => $data['currency'] ?? null,
-            'billing_name' => $data['billing']['first_name'] .  '' . $data['billing']['last_name'] ?? null,
-            'billing_address' => $data['billing']['address_1'] .  '' . $data['billing']['address_2'] ?? null,
-            'shipping_name' => $data['shipping']['first_name'] .  '' . $data['shipping']['last_name'] ?? null,
-            'shipping_address' => $data['shipping']['address_1'] .  '' . $data['shipping']['address_2'] ?? null,
+            'billing_name'     => trim(($billing['first_name'] ?? '') . ' ' . ($billing['last_name'] ?? '')),
+            'billing_address'  => trim(($billing['address_1'] ?? '') . ' ' . ($billing['address_2'] ?? '')),
+            
+            'shipping_name'    => trim(($shipping['first_name'] ?? '') . ' ' . ($shipping['last_name'] ?? '')),
+            'shipping_address' => trim(($shipping['address_1'] ?? '') . ' ' . ($shipping['address_2'] ?? '')),
+
             'items' => $data['line_items'] ?? null,
             'total' => $data['total'] ?? null,
             'discount_total' => $data['discount_total'] ?? null,

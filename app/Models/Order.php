@@ -29,10 +29,13 @@ class Order extends Model
         'shipping_total',
         'status',
         'last_error',
+        'fiscal_status',
+        'invoice_key',
+        'emitted_at'
     ];
 
     protected $casts = [
-        'raw_data' => 'array',
+        'raw_data' => 'string',
         'items' => 'array',
         'total' => 'float',
         'discount_total' => 'float',
