@@ -1,59 +1,45 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Integrador de Pedidos e NF-e
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+O objetivo é criar uma API em **Laravel** que simule o meio de campo entre uma loja virtual (como WooCommerce) e um emissor de notas fiscais, utilizando IA para categorizar impostos e garantir a integridade dos dados.
 
-## About Laravel
-
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
-
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- Requisitos técnicos
+    - Laragon - https://laragon.org/docs
+        
+        Um ambiente de desenvolvimento universal. É excelente para criar e gerenciar aplicações web modernas. Seu foco é o desempenho, sendo projetado com base em estabilidade, simplicidade, flexibilidade e liberdade.
+        
+- Banco de dados
+    - Pedidos
+        
+        Tabela: **orders**
+        
+        | **Campo** | **Tipo** | **Descrição** |
+        | --- | --- | --- |
+        | `id` | UUID | Chave primária |
+        | `external_id` | String | Identificador externo do pedido |
+        | `raw_data` | JSONB | Dados brutos do pedido |
+        | `origin` | String | Origem do pedido |
+        | `customer_id` | String | Identificador do cliente (opcional) |
+        | `order_key` | String | Chave do pedido (opcional) |
+        | `currency` | String | Moeda do pedido (opcional) |
+        | `billing_name` | String | Nome de cobrança (opcional) |
+        | `billing_address` | String | Endereço de cobrança (opcional) |
+        | `shipping_name` | String | Nome de entrega (opcional) |
+        | `shipping_address` | String | Endereço de entrega (opcional) |
+        | `items` | JSONB | Itens do pedido (opcional) |
+        | `total` | Decimal(10, 2) | Total do pedido (opcional) |
+        | `discount_total` | Decimal(10, 2) | Total de descontos (opcional) |
+        | `shipping_total` | Decimal(10, 2) | Total de frete (opcional) |
+        | `status` | String | Status do pedido (opcional) |
+        | `last_error` | String | Último erro (opcional) |
+        | `timestamps` | Timestamp | Data de criação e atualização do pedido |
+- Fluxo da aplicação
+    - Webhook
+        
+        Os webhooks são configurados na aba de configuração avançada do plugin (neste caso, Woocomerce). Lá, é informado o endpoint que será chamado e a ação (trigger) que irá disparar o evento.
+        
+        - Triggers
+            - Criação de pedido
+                - Quando um pedido é criado, o endpoint http://omni-fiscal.test/api/v1/orders ****é chamado. Ele possui as seguintes responsabilidades:
+                    1. Checa de onde a requisição está vindo (WooComerce, Shopify, etc)
+                    2. Trata os dados retornados a depender de onde vem a requisição
+                    3. Armazena na tabela **orders** informações relevantes sobre o pedido
