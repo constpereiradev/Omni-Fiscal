@@ -17,6 +17,10 @@ class OrderController extends Controller
         private readonly FiscalService $fiscalService
     ) {}
 
+    /**
+     * Retorna todos os pedidos existentes.
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function index()
     {
         $orders = Order::orderBy("id", "desc")->get();
@@ -24,6 +28,11 @@ class OrderController extends Controller
         return response()->json($orders);
     }
 
+    /**
+     * Armazena um pedido.
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function store(Request $request)
     {
         try {

@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Log;
 
 class OrderService
 {
+    /**
+     * Processa um pedido, o armazenando e adicionando  na filha de processamento a emissão da NF.
+     * @param array $data
+     * @param OrderIntegrationStrategy $strategy
+     */
     public function process(array $data, OrderIntegrationStrategy $strategy)
     {
         $cleanData = $strategy->transform($data);

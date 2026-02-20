@@ -9,7 +9,7 @@ use App\Utils\Utils;
 class FiscalService
 {
     /**
-     * Summary of emit
+     * Função responsável por emitir NF do produto.
      * @param Order $order
      * @return void
      */
@@ -32,6 +32,12 @@ class FiscalService
 
     private function prepareWebManiaPayload(Order $order): array
     {
+
+        /**
+         * Chamada para API externa da WebMania.
+         */
+
+
         $config = config('fiscal');
 
         return [
@@ -51,7 +57,7 @@ class FiscalService
                         'informacoes_complementares' => 'Pagamento via Gateway Online'
                     ],
                     'tomador' => [
-                        'razao_social' => $order->billing_name,
+                        'razao_social' => $order->billing_name ?? 'Amanda da Conceição Pere',
                         'cnpj'         => Utils::onlyNumbers($order->document ?? '00000000000'),
                         'cep'          => Utils::onlyNumbers($order->raw_data['billing']['postcode'] ?? '00000000'),
                         'endereco'     => $order->billing_address,
